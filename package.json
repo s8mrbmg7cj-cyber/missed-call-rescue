@@ -1,98 +1,12 @@
-I want to simplify and fix my project so it actually works reliably on Vercel.
-
-Remove Twilio completely. It is causing issues and I only want email notifications for now.
-
-⸻
-
-🎯 GOAL
-
-When someone submits the form:
-	1.	Send an email notification to:
-andrewyoung02@icloud.com
-	2.	Use this Gmail as the sender:
-andrew3333422@gmail.com
-	3.	Return valid JSON every time
-	4.	Log clear success + error messages in Vercel logs
-
-⸻
-
-⚙️ REQUIREMENTS
-	•	Remove ALL Twilio code and dependencies
-	•	Use Nodemailer only
-	•	Keep it compatible with Vercel serverless functions
-	•	Keep existing route:
-/api/submit
-	•	Keep the current frontend form working
-	•	Make it beginner-friendly and reliable
-
-⸻
-
-🔑 ENV VARIABLES (IMPORTANT)
-
-Use these exact names:
-	•	GMAIL_USER → andrew3333422@gmail.com
-	•	GMAIL_APP_PASSWORD → (I will add this in Vercel)
-	•	NOTIFY_EMAIL → andrewyoung02@icloud.com
-
-⸻
-
-🧠 LOGGING (VERY IMPORTANT)
-
-In the backend, log clearly:
-	•	which env vars are set or missing
-	•	when email is successfully sent
-	•	if email fails, show exact error
-
-Example logs:
-	•	EMAIL: sent successfully
-	•	EMAIL ERROR: ...
-	•	ENV CHECK - GMAIL_USER: SET
-	•	ENV CHECK - GMAIL_APP_PASSWORD: MISSING
-
-⸻
-
-📦 OUTPUT
-
-Give me ONLY:
-	1.	Full updated package.json
-	2.	Full updated api/submit.js
-
-Do NOT give downloads
-Do NOT explain much
-Just give clean, paste-ready code
-
-⸻
-
-📋 AFTER CODE
-
-Give a short checklist for:
-	1.	What file to replace in GitHub
-	2.	What env vars to add in Vercel
-	3.	How to redeploy
-	4.	How to test
-
-⸻
-
-🚫 DO NOT
-	•	Do NOT include Twilio anywhere
-	•	Do NOT overcomplicate
-	•	Do NOT add extra features
-
-⸻
-
-Make this simple, clean, and guaranteed to work
-
-⸻
-
-After Claude responds
-
-Do this:
-	1.	Replace:
-	•	package.json
-	•	api/submit.js
-	2.	In Vercel → add:
-	•	GMAIL_USER = andrew3333422@gmail.com
-	•	GMAIL_APP_PASSWORD = (your app password)
-	•	NOTIFY_EMAIL = andrewyoung02@icloud.com
-	3.	Redeploy
-	4.	Test form
+{
+  "name": "missed-call-rescue",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}
