@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export default async function handler(req, res) {
 
@@ -15,7 +15,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: "Method not allowed." });
   }
 
-  // ── Read form fields ──
   let name = "";
   let businessName = "";
   let phone = "";
@@ -32,7 +31,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, error: "Could not read form data." });
   }
 
-  // ── Validate ──
   if (!name || !businessName || !phone || !email) {
     return res.status(400).json({ success: false, error: "Missing required fields." });
   }
@@ -44,45 +42,25 @@ export default async function handler(req, res) {
   console.log("Email:", email);
   console.log("Calls/week:", callsPerWeek);
 
-  // ── Env var check ──
-  const gmailUser   = process.env.GMAIL_USER;
-  const gmailPass   = process.env.GMAIL_APP_PASSWORD;
-  const notifyEmail = process.env.NOTIFY_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  console.log("ENV CHECK - RESEND_API_KEY:", apiKey ? "SET" : "MISSING");
 
-  console.log("ENV CHECK - GMAIL_USER:", gmailUser ? "SET" : "MISSING");
-  console.log("ENV CHECK - GMAIL_APP_PASSWORD:", gmailPass ? "SET" : "MISSING");
-  console.log("ENV CHECK - NOTIFY_EMAIL:", notifyEmail ? "SET" : "MISSING");
-
-  if (!gmailUser || !gmailPass || !notifyEmail) {
-    console.log("EMAIL: skipping — one or more env vars missing");
-    return res.status(200).json({ success: true, message: "Form received. Email skipped — env vars missing." });
+  if (!apiKey) {
+    console.log("EMAIL: skipping — RESEND_API_KEY is missing");
+    return res.status(200).json({ success: true, message: "Form received. Email skipped — API key missing." });
   }
 
-  // ── Send email ──
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: gmailUser,
-        pass: gmailPass,
-      },
-    });
+    const resend = new Resend(apiKey);
 
-    await transporter.sendMail({
-      from: `"Missed Call Rescue" <${gmailUser}>`,
-      to: notifyEmail,
+    const { data, error } = await resend.emails.send({
+      from: "Missed Call Rescue <onboarding@resend.dev>",
+      to: "andrewyoung02@icloud.com",
       subject: `New Lead: ${name} — ${businessName}`,
-      text:
-        `NEW LEAD — Missed Call Rescue\n\n` +
-        `Name: ${name}\n` +
-        `Business: ${businessName}\n` +
-        `Phone: ${phone}\n` +
-        `Email: ${email}\n` +
-        `Calls/week: ${callsPerWeek}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;background:#0d1422;color:#f0f4ff;padding:32px;border-radius:12px;">
           <div style="background:#2d7ef8;color:#fff;padding:7px 14px;border-radius:6px;display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:24px;">
-            New Lead
+            🚨 New Lead
           </div>
           <h2 style="margin:0 0 24px;font-size:20px;color:#fff;">Missed Call Rescue</h2>
           <table style="width:100%;border-collapse:collapse;">
@@ -114,7 +92,12 @@ export default async function handler(req, res) {
       `,
     });
 
-    console.log("EMAIL: sent successfully to", notifyEmail);
+    if (error) {
+      console.log("EMAIL ERROR:", error.message);
+      return res.status(200).json({ success: true, message: "Form received but email failed." });
+    }
+
+    console.log("EMAIL: sent successfully — ID:", data?.id);
 
   } catch (err) {
     console.log("EMAIL ERROR:", err.message);
