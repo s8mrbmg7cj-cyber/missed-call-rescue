@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
   if (!apiKey) {
     console.log("EMAIL: skipping — RESEND_API_KEY is missing");
-    return res.status(200).json({ success: true, message: "Form received. Email skipped — API key missing." });
+    return res.status(200).json({ success: true });
   }
 
   try {
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       html: `
         <div style="font-family:sans-serif;max-width:480px;background:#0d1422;color:#f0f4ff;padding:32px;border-radius:12px;">
           <div style="background:#2d7ef8;color:#fff;padding:7px 14px;border-radius:6px;display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:24px;">
-            🚨 New Lead
+            New Lead
           </div>
           <h2 style="margin:0 0 24px;font-size:20px;color:#fff;">Missed Call Rescue</h2>
           <table style="width:100%;border-collapse:collapse;">
@@ -85,23 +85,18 @@ export default async function handler(req, res) {
               <td style="padding:11px 0;color:#fff;font-weight:600;">${callsPerWeek}</td>
             </tr>
           </table>
-          <div style="margin-top:24px;padding:14px 16px;background:rgba(45,126,248,0.1);border:1px solid rgba(45,126,248,0.2);border-radius:8px;font-size:12px;color:rgba(240,244,255,0.5);">
-            Submitted via Missed Call Rescue landing page
-          </div>
         </div>
       `,
     });
 
     if (error) {
       console.log("EMAIL ERROR:", error.message);
-      return res.status(200).json({ success: true, message: "Form received but email failed." });
+    } else {
+      console.log("EMAIL: sent successfully — ID:", data?.id);
     }
-
-    console.log("EMAIL: sent successfully — ID:", data?.id);
 
   } catch (err) {
     console.log("EMAIL ERROR:", err.message);
-    return res.status(200).json({ success: true, message: "Form received but email failed." });
   }
 
   return res.status(200).json({ success: true, message: "Form received successfully." });
