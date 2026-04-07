@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed. Use POST." });
+    return res.status(405).json({ success: false, error: "Method not allowed." });
   }
 
   let name = "";
@@ -32,17 +32,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, error: "Could not read form data." });
   }
 
-  console.log("=== NEW FORM SUBMISSION ===");
+  if (!name || !businessName || !phone || !email) {
+    return res.status(400).json({ success: false, error: "Missing required fields." });
+  }
+
+  console.log("=== NEW LEAD ===");
   console.log("Name:", name);
   console.log("Business:", businessName);
   console.log("Phone:", phone);
   console.log("Email:", email);
   console.log("Calls/week:", callsPerWeek);
-  console.log("===========================");
-
-  if (!name || !businessName || !phone || !email) {
-    return res.status(400).json({ success: false, error: "Missing required fields." });
-  }
 
   const leadMessage =
     `NEW LEAD - Missed Call Rescue\n\n` +
@@ -52,37 +51,48 @@ export default async function handler(req, res) {
     `Email: ${email}\n` +
     `Calls/week: ${callsPerWeek}`;
 
-  // ── Twilio SMS ──────────────────────────────────────────
-  try {
-    const sid   = process.env.TWILIO_ACCOUNT_SID;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const from  = process.env.TWILIO_PHONE_NUMBER;
-    const to    = process.env.NOTIFY_PHONE;
+  // ── ENV VAR DEBUG LOG ───────────────────────────────────
+  console.log("ENV CHECK - TWILIO_ACCOUNT_SID:", process.env.TWILIO_ACCOUNT_SID ? "SET" : "MISSING");
+  console.log("ENV CHECK - TWILIO_AUTH_TOKEN:", process.env.TWILIO_AUTH_TOKEN ? "SET" : "MISSING");
+  console.log("ENV CHECK - TWILIO_PHONE_NUMBER:", process.env.TWILIO_PHONE_NUMBER ? "SET" : "MISSING");
+  console.log("ENV CHECK - NOTIFY_PHONE:", process.env.NOTIFY_PHONE ? "SET" : "MISSING");
+  console.log("ENV CHECK - GMAIL_USER:", process.env.GMAIL_USER ? "SET" : "MISSING");
+  console.log("ENV CHECK - GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "SET" : "MISSING");
+  console.log("ENV CHECK - NOTIFY_EMAIL:", process.env.NOTIFY_EMAIL ? "SET" : "MISSING");
 
-    if (!sid || !token || !from || !to) {
-      console.log("TWILIO: env vars missing, skipping SMS");
-    } else {
-      const client = twilio(sid, token);
-      await client.messages.create({
+  // ── TWILIO SMS ──────────────────────────────────────────
+  const twilioSid   = process.env.TWILIO_ACCOUNT_SID;
+  const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioFrom  = process.env.TWILIO_PHONE_NUMBER;
+  const twilioTo    = process.env.NOTIFY_PHONE;
+
+  if (!twilioSid || !twilioToken || !twilioFrom || !twilioTo) {
+    console.log("TWILIO: one or more env vars missing — skipping SMS");
+  } else {
+    try {
+      const client = twilio(twilioSid, twilioToken);
+      const message = await client.messages.create({
         body: leadMessage,
-        from: from,
-        to: to,
+        from: twilioFrom,
+        to: twilioTo,
       });
-      console.log("TWILIO: SMS sent successfully to", to);
+      console.log("TWILIO: SMS sent — SID:", message.sid);
+    } catch (err) {
+      console.log("TWILIO ERROR:", err.message);
+      console.log("TWILIO ERROR CODE:", err.code);
+      console.log("TWILIO ERROR STATUS:", err.status);
     }
-  } catch (err) {
-    console.log("TWILIO ERROR:", err.message);
   }
 
-  // ── Email via Gmail ─────────────────────────────────────
-  try {
-    const gmailUser   = process.env.GMAIL_USER;
-    const gmailPass   = process.env.GMAIL_APP_PASSWORD;
-    const notifyEmail = process.env.NOTIFY_EMAIL;
+  // ── GMAIL ───────────────────────────────────────────────
+  const gmailUser   = process.env.GMAIL_USER;
+  const gmailPass   = process.env.GMAIL_APP_PASSWORD;
+  const notifyEmail = process.env.NOTIFY_EMAIL;
 
-    if (!gmailUser || !gmailPass || !notifyEmail) {
-      console.log("EMAIL: env vars missing, skipping email");
-    } else {
+  if (!gmailUser || !gmailPass || !notifyEmail) {
+    console.log("EMAIL: one or more env vars missing — skipping email");
+  } else {
+    try {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -91,7 +101,7 @@ export default async function handler(req, res) {
         },
       });
 
-      await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: `"Missed Call Rescue" <${gmailUser}>`,
         to: notifyEmail,
         subject: `New Lead: ${name} — ${businessName}`,
@@ -127,10 +137,10 @@ export default async function handler(req, res) {
           </div>
         `,
       });
-      console.log("EMAIL: sent successfully to", notifyEmail);
+      console.log("EMAIL: sent — Message ID:", info.messageId);
+    } catch (err) {
+      console.log("EMAIL ERROR:", err.message);
     }
-  } catch (err) {
-    console.log("EMAIL ERROR:", err.message);
   }
 
   return res.status(200).json({ success: true, message: "Form received successfully" });
