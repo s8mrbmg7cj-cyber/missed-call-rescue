@@ -3,497 +3,366 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Missed Call Rescue — Turn Missed Calls Into Booked Jobs</title>
+<title>Missed Call Rescue — Turn Missed Calls Into Paying Customers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #080c14;
-    --bg2: #0d1422;
-    --bg3: #111827;
-    --card: rgba(255,255,255,0.04);
-    --card-border: rgba(255,255,255,0.07);
-    --card-border2: rgba(255,255,255,0.11);
-    --blue: #2d7ef8;
-    --blue-bright: #4a9eff;
-    --blue-glow: rgba(45,126,248,0.25);
-    --blue-dim: rgba(45,126,248,0.12);
-    --blue-border: rgba(45,126,248,0.3);
-    --text: #f0f4ff;
-    --text-muted: rgba(240,244,255,0.55);
-    --text-dim: rgba(240,244,255,0.32);
-    --green: #22d382;
-    --red: rgba(255,70,70,0.85);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
+:root {
+  --bg: #080c14;
+  --bg2: #0d1422;
+  --bg3: #111827;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --blue: #2d7ef8;
+  --blue2: #4a9eff;
+  --blue-glow: rgba(45,126,248,0.25);
+  --blue-dim: rgba(45,126,248,0.12);
+  --blue-border: rgba(45,126,248,0.3);
+  --green: #22d382;
+  --green-dim: rgba(34,211,130,0.12);
+  --green-border: rgba(34,211,130,0.25);
+  --red: #ff4d4d;
+  --text: #f0f4ff;
+  --muted: rgba(240,244,255,0.55);
+  --dim: rgba(240,244,255,0.32);
+  --r: 16px;
+  --r-sm: 10px;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4 { font-family: 'Syne', sans-serif; letter-spacing: -0.02em; line-height: 1.1; }
+a { text-decoration: none; color: inherit; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px;
+  pointer-events: none; z-index: 0; opacity: 0.5;
+}
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+section { position: relative; z-index: 1; }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  transition: background 0.3s;
+}
+nav.scrolled {
+  background: rgba(8,12,20,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1120px; margin: 0 auto; padding: 20px 24px;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700;
+  display: flex; align-items: center; gap: 9px;
+}
+.logo-dot {
+  width: 9px; height: 9px; background: var(--blue);
+  border-radius: 50%; box-shadow: 0 0 10px var(--blue);
+  animation: pulse 2s infinite; flex-shrink: 0;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { font-size: 14px; font-weight: 500; color: var(--muted); transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 22px; border-radius: var(--r-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; border: none;
+}
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 0 24px var(--blue-glow); }
+.btn-primary:hover { background: var(--blue2); box-shadow: 0 0 36px rgba(74,158,255,0.4); transform: translateY(-1px); }
+.btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: var(--border2); }
+.btn-large { padding: 15px 32px; font-size: 16px; border-radius: var(--r-sm); }
+.btn-full { width: 100%; justify-content: center; }
+.ham { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+.ham span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 17px;
-    line-height: 1.65;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
+/* MOBILE MENU */
+.mob-menu {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,12,20,0.97); backdrop-filter: blur(20px);
+  z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+}
+.mob-menu.open { display: flex; }
+.mob-menu a { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; color: var(--muted); }
+.mob-menu a:hover { color: var(--text); }
+.mob-close { position: absolute; top: 24px; right: 24px; font-size: 24px; color: var(--muted); cursor: pointer; background: none; border: none; }
 
-  h1, h2, h3, h4 {
-    font-family: 'Syne', sans-serif;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
+/* STICKY CTA */
+.sticky-cta { position: fixed; bottom: 24px; right: 24px; z-index: 90; opacity: 0; transform: translateY(20px); transition: all 0.3s; pointer-events: none; }
+.sticky-cta.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
 
-  a { text-decoration: none; color: inherit; }
+/* FADE IN */
+.fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: translateY(0); }
 
-  /* ── NOISE ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    background-size: 256px;
-    pointer-events: none; z-index: 0; opacity: 0.5;
-  }
+/* SECTION HELPERS */
+.section-tag { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue2); margin-bottom: 16px; }
+.section-title { font-size: clamp(28px, 4vw, 44px); font-weight: 700; color: #fff; margin-bottom: 20px; }
+.section-title span { color: var(--blue2); }
+.section-body { font-size: 17px; color: var(--muted); max-width: 600px; font-weight: 300; }
+.text-center { text-align: center; }
+.text-center .section-body { margin: 0 auto; }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
 
-  /* ── LAYOUT ── */
-  .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
-  section { position: relative; z-index: 1; }
+/* HERO */
+#hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 0 80px; overflow: hidden; }
+.hero-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, rgba(45,126,248,0.18) 0%, transparent 70%); pointer-events: none; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--blue-dim); border: 1px solid var(--blue-border); border-radius: 100px; font-size: 13px; color: var(--blue2); font-weight: 500; margin-bottom: 24px; }
+.hero-badge .live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+h1 { font-size: clamp(38px, 5vw, 58px); font-weight: 800; margin-bottom: 24px; color: #fff; }
+.hero-sub { font-size: 18px; color: var(--muted); max-width: 520px; margin-bottom: 36px; font-weight: 300; }
+.hero-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
+.hero-bullets { display: flex; flex-direction: column; gap: 10px; }
+.hero-bullet { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+.hero-bullet .check { width: 20px; height: 20px; background: var(--blue-dim); border: 1px solid var(--blue-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--blue2); font-size: 11px; }
 
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0;
-    z-index: 100; padding: 18px 0;
-    transition: background 0.3s, backdrop-filter 0.3s;
-  }
-  nav.scrolled {
-    background: rgba(8,12,20,0.88);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--card-border);
-  }
-  .nav-inner {
-    display: flex; align-items: center; justify-content: space-between;
-    max-width: 1120px; margin: 0 auto; padding: 0 24px;
-  }
-  .nav-logo {
-    font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .nav-logo .dot {
-    width: 9px; height: 9px; background: var(--blue);
-    border-radius: 50%; box-shadow: 0 0 10px var(--blue);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-  .nav-links { display: flex; gap: 36px; list-style: none; }
-  .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-muted); transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
+/* PHONE MOCKUP */
+.phone-wrap { display: flex; justify-content: center; align-items: center; position: relative; }
+.phone-glow-bg { position: absolute; inset: -40px; background: radial-gradient(ellipse at center, rgba(45,126,248,0.15) 0%, transparent 65%); pointer-events: none; }
+.phone { width: 280px; background: #0d1117; border-radius: 40px; border: 2px solid rgba(255,255,255,0.1); padding: 16px 12px 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08); }
+.phone-notch { width: 80px; height: 6px; background: #1c2333; border-radius: 3px; margin: 0 auto 18px; }
+.phone-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.phone-contact { width: 40px; height: 40px; background: linear-gradient(135deg, #2d7ef8, #1a56c4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #fff; margin: 0 auto 8px; }
+.phone-name { font-size: 14px; font-weight: 600; color: #fff; }
+.phone-status { font-size: 12px; color: var(--dim); }
+.messages { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+.msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
+.msg-missed { background: rgba(255,70,70,0.08); border: 1px solid rgba(255,70,70,0.18); color: rgba(255,100,100,0.85); font-size: 12px; text-align: center; border-radius: 8px; align-self: stretch; padding: 8px 12px; }
+.msg-out { background: var(--blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg-in { background: #1e2840; color: var(--muted); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg:nth-child(1){animation:msgIn 0.4s ease 0.2s both;}
+.msg:nth-child(2){animation:msgIn 0.4s ease 0.7s both;}
+.msg:nth-child(3){animation:msgIn 0.4s ease 1.2s both;}
+.msg:nth-child(4){animation:msgIn 0.4s ease 1.7s both;}
+.msg:nth-child(5){animation:msgIn 0.4s ease 2.2s both;}
+@keyframes msgIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+.msg-time { font-size: 10px; color: var(--dim); text-align: right; margin-top: 8px; }
+.typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: #1e2840; border-radius: 16px; border-bottom-left-radius: 4px; align-self: flex-start; animation: msgIn 0.4s ease 2.6s both; }
+.typing-dot { width: 6px; height: 6px; background: var(--dim); border-radius: 50%; animation: typingPulse 1.4s infinite; }
+.typing-dot:nth-child(2){animation-delay:0.2s;} .typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typingPulse { 0%,100%{opacity:0.3;transform:scale(0.8);} 50%{opacity:1;transform:scale(1);} }
 
-  /* ── BUTTONS ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 22px; border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: all 0.2s; border: none;
-  }
-  .btn-primary {
-    background: var(--blue); color: #fff;
-    box-shadow: 0 0 24px var(--blue-glow);
-  }
-  .btn-primary:hover {
-    background: var(--blue-bright);
-    box-shadow: 0 0 36px rgba(74,158,255,0.4);
-    transform: translateY(-1px);
-  }
-  .btn-ghost {
-    background: var(--card); color: var(--text);
-    border: 1px solid var(--card-border);
-  }
-  .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: var(--card-border2); }
-  .btn-large { padding: 15px 30px; font-size: 16px; border-radius: var(--radius-sm); }
-  .btn-full { width: 100%; justify-content: center; }
+/* STATS BAR */
+#stats { padding: 32px 0; background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.stats-row { display: flex; justify-content: center; gap: 64px; flex-wrap: wrap; }
+.stat-item { text-align: center; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--blue2); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 13px; color: var(--dim); }
 
-  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
-  .hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+/* PROBLEM */
+#problem { padding: 100px 0; }
+.problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-top: 48px; }
+.problem-copy p { font-size: 17px; color: var(--muted); font-weight: 300; margin-bottom: 16px; line-height: 1.75; }
+.problem-copy p strong { color: var(--text); font-weight: 600; }
+.problem-cards { display: flex; flex-direction: column; gap: 12px; }
+.prob-card { display: flex; gap: 16px; align-items: flex-start; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; transition: border-color 0.2s; }
+.prob-card:hover { border-color: var(--border2); }
+.prob-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(255,70,70,0.08); border: 1px solid rgba(255,70,70,0.15); }
+.prob-card h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.prob-card p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.6; }
+.speed-callout { display: flex; gap: 16px; align-items: flex-start; background: var(--blue-dim); border: 1px solid var(--blue-border); border-radius: var(--r); padding: 22px; margin-top: 28px; }
+.speed-callout .icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+.speed-callout h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+.speed-callout p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.6; }
 
-  /* ── MOBILE MENU ── */
-  .mobile-menu {
-    display: none; position: fixed; inset: 0;
-    background: rgba(8,12,20,0.97); backdrop-filter: blur(20px);
-    z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px;
-  }
-  .mobile-menu.open { display: flex; }
-  .mobile-menu a { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; color: var(--text-muted); transition: color 0.2s; }
-  .mobile-menu a:hover { color: var(--text); }
-  .mobile-close { position: absolute; top: 24px; right: 24px; font-size: 24px; color: var(--text-muted); cursor: pointer; background: none; border: none; }
+/* HOW IT WORKS */
+#how { padding: 100px 0; background: var(--bg2); }
+.steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 48px; }
+.step-card { background: var(--card); border: 1px solid var(--border); padding: 28px 22px; position: relative; transition: border-color 0.2s, transform 0.2s; }
+.step-card:first-child { border-radius: var(--r) 0 0 var(--r); }
+.step-card:last-child { border-radius: 0 var(--r) var(--r) 0; }
+.step-card:hover { border-color: var(--blue-border); transform: translateY(-3px); z-index: 1; }
+.step-arrow { position: absolute; top: 24px; right: -14px; width: 28px; height: 28px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; z-index: 2; box-shadow: 0 0 12px var(--blue-glow); }
+.step-card:last-child .step-arrow { display: none; }
+.step-num { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800; color: rgba(45,126,248,0.2); line-height: 1; margin-bottom: 14px; display: block; }
+.step-icon { font-size: 26px; margin-bottom: 12px; display: block; }
+.step-card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.step-card p { font-size: 13.5px; color: var(--muted); font-weight: 300; line-height: 1.6; }
 
-  /* ── STICKY CTA ── */
-  .sticky-cta {
-    position: fixed; bottom: 24px; right: 24px; z-index: 99;
-    opacity: 0; transform: translateY(20px);
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
-  }
-  .sticky-cta.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+/* FOLLOW UP SECTION */
+#followup { padding: 100px 0; }
+.followup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; margin-top: 48px; }
+.followup-steps { display: flex; flex-direction: column; gap: 0; }
+.fu-step { display: flex; gap: 20px; padding-bottom: 28px; position: relative; }
+.fu-step::before { content: ''; position: absolute; left: 19px; top: 42px; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--blue-border), transparent); }
+.fu-step:last-child::before { display: none; }
+.fu-num { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--blue-dim); border: 1px solid var(--blue-border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--blue2); position: relative; z-index: 1; }
+.fu-text { padding-top: 8px; }
+.fu-text h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.fu-text p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.65; }
+.followup-visual { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px; }
+.followup-visual h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 20px; }
+.msg-timeline { display: flex; flex-direction: column; gap: 12px; }
+.msg-tl { display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: var(--bg3); border-radius: var(--r-sm); border: 1px solid var(--border); }
+.msg-tl-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.msg-tl-icon.blue { background: var(--blue-dim); border: 1px solid var(--blue-border); }
+.msg-tl-icon.green { background: var(--green-dim); border: 1px solid var(--green-border); }
+.msg-tl-icon.yellow { background: rgba(245,197,24,0.12); border: 1px solid rgba(245,197,24,0.25); }
+.msg-tl-content { flex: 1; }
+.msg-tl-time { font-size: 11px; color: var(--dim); margin-bottom: 3px; }
+.msg-tl-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.msg-tl-text strong { color: #fff; font-weight: 500; }
+.msg-tl-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; margin-left: auto; flex-shrink: 0; margin-top: 2px; }
+.badge-auto { background: var(--blue-dim); color: var(--blue2); border: 1px solid var(--blue-border); }
+.badge-auto2 { background: rgba(245,197,24,0.12); color: #f5c518; border: 1px solid rgba(245,197,24,0.25); }
+.badge-reply { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
 
-  /* ── FADE IN ── */
-  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .fade-in.visible { opacity: 1; transform: translateY(0); }
+/* FEATURES */
+#features { padding: 100px 0; background: var(--bg2); }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+.feature-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.feature-card:hover { border-color: var(--blue-border); box-shadow: 0 8px 30px rgba(45,126,248,0.08); transform: translateY(-3px); }
+.feature-icon { width: 48px; height: 48px; background: var(--blue-dim); border: 1px solid rgba(45,126,248,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
+.feature-card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.feature-card p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.65; }
 
-  /* ── SECTION HELPERS ── */
-  .section-tag {
-    display: inline-block; font-size: 12px; font-weight: 600;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--blue-bright); margin-bottom: 16px;
-  }
-  .section-title { font-size: clamp(28px, 4vw, 44px); font-weight: 700; color: #fff; margin-bottom: 20px; }
-  .section-body { font-size: 17px; color: var(--text-muted); max-width: 600px; font-weight: 300; }
-  .text-center { text-align: center; }
-  .text-center .section-body { margin: 0 auto; }
-  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-border), transparent); }
+/* ROI */
+#roi { padding: 100px 0; }
+.roi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+.roi-copy p { font-size: 17px; color: var(--muted); font-weight: 300; margin-bottom: 16px; line-height: 1.75; }
+.roi-copy p strong { color: var(--text); font-weight: 600; }
+.roi-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.roi-pill { padding: 8px 16px; border-radius: 100px; background: var(--card); border: 1px solid var(--border); font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+.roi-pill .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+.roi-calc-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.roi-calc-header { padding: 16px 24px; background: var(--blue-dim); border-bottom: 1px solid var(--blue-border); font-size: 12px; font-weight: 700; color: var(--blue2); letter-spacing: 0.1em; text-transform: uppercase; }
+.roi-calc-body { padding: 24px; }
+.cslide { margin-bottom: 20px; }
+.cslide-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.cslide-top span { color: var(--blue2); font-weight: 600; }
+input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); cursor: pointer; box-shadow: 0 0 10px var(--blue-glow); }
+.roi-rows { border-top: 1px solid var(--border); margin-top: 4px; }
+.roi-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.roi-row:last-child { border-bottom: none; }
+.roi-row .rl { color: var(--muted); }
+.roi-row .rv { color: #fff; font-weight: 600; }
+.roi-result-box { margin-top: 20px; padding: 20px; text-align: center; background: linear-gradient(135deg, rgba(34,211,130,0.08), rgba(34,211,130,0.04)); border: 1px solid rgba(34,211,130,0.2); border-radius: var(--r-sm); }
+.roi-big { font-family: 'Syne', sans-serif; font-size: 44px; font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 6px; }
+.roi-sub { font-size: 13px; color: rgba(34,211,130,0.65); }
 
-  /* ── HERO ── */
-  #hero {
-    min-height: 100vh; display: flex; align-items: center;
-    padding: 120px 0 80px; overflow: hidden;
-  }
-  .hero-glow {
-    position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
-    width: 900px; height: 600px;
-    background: radial-gradient(ellipse at center, rgba(45,126,248,0.18) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px; background: var(--blue-dim);
-    border: 1px solid var(--blue-border); border-radius: 100px;
-    font-size: 13px; color: var(--blue-bright); font-weight: 500; margin-bottom: 24px;
-  }
-  .hero-badge .live-dot {
-    width: 7px; height: 7px; background: var(--green);
-    border-radius: 50%; animation: pulse 1.5s infinite;
-  }
-  h1 { font-size: clamp(38px, 5vw, 58px); font-weight: 800; margin-bottom: 24px; color: #fff; }
-  h1 span { color: var(--blue-bright); }
-  .hero-sub {
-    font-size: 18px; color: var(--text-muted); max-width: 520px;
-    margin-bottom: 36px; font-weight: 300;
-  }
-  .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
-  .hero-bullets { display: flex; flex-direction: column; gap: 10px; }
-  .hero-bullet { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); }
-  .hero-bullet .check {
-    width: 20px; height: 20px; background: var(--blue-dim);
-    border: 1px solid var(--blue-border); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; color: var(--blue-bright); font-size: 11px;
-  }
+/* PRICING */
+#pricing { padding: 100px 0; background: var(--bg2); }
+.pricing-card { max-width: 520px; margin: 48px auto 0; background: var(--card); border: 1px solid var(--border2); border-radius: var(--r); overflow: hidden; }
+.pricing-header { padding: 32px; background: var(--blue-dim); border-bottom: 1px solid var(--blue-border); text-align: center; }
+.price-num { font-family: 'Syne', sans-serif; font-size: 56px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 4px; }
+.price-per { font-size: 16px; color: var(--muted); }
+.pricing-body { padding: 32px; }
+.pricing-features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.pf { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--muted); }
+.pf .ck { width: 22px; height: 22px; background: var(--green-dim); border: 1px solid var(--green-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 12px; flex-shrink: 0; }
+.pricing-note { text-align: center; font-size: 13px; color: var(--dim); margin-top: 16px; }
+.pricing-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+.ptag { padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); font-size: 12px; color: var(--dim); }
 
-  /* ── PHONE ── */
-  .phone-wrap { display: flex; justify-content: center; align-items: center; position: relative; }
-  .phone-glow-bg {
-    position: absolute; inset: -40px;
-    background: radial-gradient(ellipse at center, rgba(45,126,248,0.15) 0%, transparent 65%);
-    pointer-events: none;
-  }
-  .phone {
-    width: 280px; background: #0d1117; border-radius: 40px;
-    border: 2px solid rgba(255,255,255,0.1); padding: 16px 12px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .phone-notch { width: 80px; height: 6px; background: #1c2333; border-radius: 3px; margin: 0 auto 18px; }
-  .phone-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .phone-contact {
-    width: 40px; height: 40px; background: linear-gradient(135deg, #2d7ef8, #1a56c4);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #fff; margin: 0 auto 8px;
-  }
-  .phone-name { font-size: 14px; font-weight: 600; color: #fff; }
-  .phone-status { font-size: 12px; color: var(--text-dim); }
-  .messages { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
-  .msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; animation: msgIn 0.4s ease both; }
-  .msg-out { background: var(--blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .msg-in { background: #1e2840; color: var(--text-muted); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .msg-missed { background: rgba(255,70,70,0.08); border: 1px solid rgba(255,70,70,0.18); color: rgba(255,100,100,0.85); font-size: 12px; text-align: center; border-radius: 8px; align-self: stretch; padding: 8px 12px; }
-  .msg:nth-child(1){animation-delay:0.2s;} .msg:nth-child(2){animation-delay:0.6s;} .msg:nth-child(3){animation-delay:1.0s;} .msg:nth-child(4){animation-delay:1.4s;} .msg:nth-child(5){animation-delay:1.8s;}
-  @keyframes msgIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-  .msg-time { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 8px; }
-  .typing-indicator {
-    display: flex; align-items: center; gap: 4px;
-    padding: 10px 14px; background: #1e2840; border-radius: 16px; border-bottom-left-radius: 4px;
-    align-self: flex-start; animation: msgIn 0.4s ease 2.2s both;
-  }
-  .typing-dot { width: 6px; height: 6px; background: var(--text-dim); border-radius: 50%; animation: typingPulse 1.4s infinite; }
-  .typing-dot:nth-child(2){animation-delay:0.2s;} .typing-dot:nth-child(3){animation-delay:0.4s;}
-  @keyframes typingPulse { 0%,100%{opacity:0.3;transform:scale(0.8);} 50%{opacity:1;transform:scale(1);} }
+/* PROCESS */
+#process { padding: 100px 0; }
+.process-inner { max-width: 640px; margin: 48px auto 0; }
+.proc-step { display: flex; gap: 20px; padding-bottom: 28px; position: relative; }
+.proc-step::before { content: ''; position: absolute; left: 19px; top: 42px; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--blue-border), transparent); }
+.proc-step:last-child::before { display: none; }
+.proc-num { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--blue-dim); border: 1px solid var(--blue-border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--blue2); position: relative; z-index: 1; }
+.proc-text { padding-top: 8px; }
+.proc-text h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.proc-text p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.65; }
 
-  /* ── STATS BAR ── */
-  #stats { padding: 32px 0; background: var(--bg2); border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); }
-  .stats-row { display: flex; justify-content: center; gap: 64px; flex-wrap: wrap; }
-  .stat-item { text-align: center; }
-  .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--blue-bright); line-height: 1; margin-bottom: 4px; }
-  .stat-label { font-size: 13px; color: var(--text-dim); }
+/* CTA / FORM */
+#cta { padding: 100px 0; }
+.cta-glow { position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 700px; height: 400px; background: radial-gradient(ellipse at center, rgba(45,126,248,0.12), transparent 70%); pointer-events: none; }
+.cta-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+.form-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 36px; text-align: left; margin-top: 40px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 7px; }
+.form-group input, .form-group select { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-group input::placeholder { color: var(--dim); }
+.form-group input:focus, .form-group select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(45,126,248,0.12); }
+.form-group select { -webkit-appearance: none; cursor: pointer; }
+.form-submit { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: var(--r-sm); font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px; box-shadow: 0 4px 20px var(--blue-glow); }
+.form-submit:hover { background: var(--blue2); box-shadow: 0 4px 30px rgba(74,158,255,0.4); transform: translateY(-2px); }
+.form-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.form-privacy { text-align: center; font-size: 12px; color: var(--dim); margin-top: 16px; }
+.form-success { display: none; text-align: center; padding: 40px 20px; }
+.success-icon { width: 64px; height: 64px; background: rgba(34,211,130,0.1); border: 1px solid rgba(34,211,130,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; }
+.form-success h3 { font-size: 22px; color: #fff; margin-bottom: 10px; }
+.form-success p { font-size: 15px; color: var(--muted); }
 
-  /* ── PROBLEM ── */
-  #problem { padding: 100px 0; }
-  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
-  .problem-copy p { font-size: 17px; color: var(--text-muted); font-weight: 300; margin-bottom: 16px; line-height: 1.75; }
-  .problem-copy p strong { color: var(--text); font-weight: 600; }
-  .problem-cards { display: flex; flex-direction: column; gap: 12px; }
-  .prob-card {
-    display: flex; gap: 16px; align-items: flex-start;
-    background: var(--card); border: 1px solid var(--card-border);
-    border-radius: var(--radius); padding: 20px; transition: border-color 0.2s, transform 0.2s;
-  }
-  .prob-card:hover { border-color: var(--card-border2); transform: translateY(-2px); }
-  .prob-icon {
-    width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; font-size: 18px;
-    background: rgba(255,70,70,0.08); border: 1px solid rgba(255,70,70,0.15);
-  }
-  .prob-card h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .prob-card p { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+/* FOOTER */
+footer { padding: 32px 0; border-top: 1px solid var(--border); }
+.footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.footer-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+footer p { font-size: 13px; color: var(--dim); }
 
-  /* ── SPEED CALLOUT ── */
-  .speed-callout {
-    display: flex; gap: 18px; align-items: flex-start;
-    background: var(--blue-dim); border: 1px solid var(--blue-border);
-    border-radius: var(--radius); padding: 24px; margin-top: 28px;
-  }
-  .speed-callout .icon { font-size: 30px; flex-shrink: 0; margin-top: 2px; }
-  .speed-callout h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 5px; }
-  .speed-callout p { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
-
-  /* ── HOW IT WORKS ── */
-  #how { padding: 100px 0; background: var(--bg2); }
-  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 48px; }
-  .step-card {
-    background: var(--card); border: 1px solid var(--card-border);
-    padding: 28px 22px; position: relative;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  .step-card:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-  .step-card:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
-  .step-card:hover { border-color: var(--blue-border); transform: translateY(-3px); z-index: 1; }
-  .step-arrow {
-    position: absolute; top: 24px; right: -14px;
-    width: 28px; height: 28px; background: var(--blue); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff; z-index: 2;
-    box-shadow: 0 0 12px var(--blue-glow);
-  }
-  .step-card:last-child .step-arrow { display: none; }
-  .step-num {
-    font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800;
-    color: rgba(45,126,248,0.2); line-height: 1; margin-bottom: 14px; display: block;
-  }
-  .step-icon { font-size: 26px; margin-bottom: 12px; display: block; }
-  .step-card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-  .step-card p { font-size: 13.5px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
-
-  /* ── WHAT YOU GET ── */
-  #features { padding: 100px 0; }
-  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
-  .feature-card {
-    background: var(--card); border: 1px solid var(--card-border);
-    border-radius: var(--radius); padding: 28px;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-  }
-  .feature-card:hover {
-    border-color: var(--blue-border);
-    box-shadow: 0 8px 30px rgba(45,126,248,0.08);
-    transform: translateY(-3px);
-  }
-  .feature-icon {
-    width: 48px; height: 48px; background: var(--blue-dim);
-    border: 1px solid rgba(45,126,248,0.2); border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; margin-bottom: 18px;
-  }
-  .feature-card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-  .feature-card p { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.65; }
-
-  /* ── ROI ── */
-  #roi { padding: 100px 0; background: var(--bg2); }
-  .roi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
-  .roi-copy p { font-size: 17px; color: var(--text-muted); font-weight: 300; margin-bottom: 16px; line-height: 1.75; }
-  .roi-copy p strong { color: var(--text); font-weight: 600; }
-  .roi-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-  .roi-pill {
-    padding: 8px 16px; border-radius: 100px;
-    background: var(--card); border: 1px solid var(--card-border);
-    font-size: 13px; color: var(--text-muted);
-    display: flex; align-items: center; gap: 7px;
-  }
-  .roi-pill .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
-  .roi-calc-card {
-    background: var(--bg3); border: 1px solid var(--card-border);
-    border-radius: var(--radius); overflow: hidden;
-  }
-  .roi-calc-header {
-    padding: 16px 24px; background: var(--blue-dim);
-    border-bottom: 1px solid var(--blue-border);
-    font-size: 12px; font-weight: 700; color: var(--blue-bright);
-    letter-spacing: 0.1em; text-transform: uppercase;
-  }
-  .roi-calc-body { padding: 24px; }
-  .cslide { margin-bottom: 20px; }
-  .cslide-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
-  .cslide-top span { color: var(--blue-bright); font-weight: 600; }
-  input[type=range] {
-    width: 100%; height: 4px; -webkit-appearance: none;
-    background: var(--card-border); border-radius: 2px; outline: none;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 18px; height: 18px;
-    border-radius: 50%; background: var(--blue); cursor: pointer;
-    box-shadow: 0 0 10px var(--blue-glow);
-  }
-  .roi-rows { border-top: 1px solid var(--card-border); margin-top: 4px; }
-  .roi-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--card-border); font-size: 14px; }
-  .roi-row:last-child { border-bottom: none; }
-  .roi-row .rl { color: var(--text-muted); }
-  .roi-row .rv { color: #fff; font-weight: 600; }
-  .roi-result-box {
-    margin-top: 20px; padding: 20px; text-align: center;
-    background: linear-gradient(135deg, rgba(34,211,130,0.08), rgba(34,211,130,0.04));
-    border: 1px solid rgba(34,211,130,0.2); border-radius: var(--radius-sm);
-  }
-  .roi-big { font-family: 'Syne', sans-serif; font-size: 44px; font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 6px; }
-  .roi-sub { font-size: 13px; color: rgba(34,211,130,0.65); }
-
-  /* ── PROCESS ── */
-  #process { padding: 100px 0; }
-  .process-inner { max-width: 640px; margin: 48px auto 0; }
-  .proc-step { display: flex; gap: 20px; padding-bottom: 28px; position: relative; }
-  .proc-step::before {
-    content: ''; position: absolute; left: 19px; top: 42px; bottom: 0; width: 1px;
-    background: linear-gradient(to bottom, var(--blue-border), transparent);
-  }
-  .proc-step:last-child::before { display: none; }
-  .proc-num {
-    width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
-    background: var(--blue-dim); border: 1px solid var(--blue-border);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--blue-bright);
-    position: relative; z-index: 1;
-  }
-  .proc-text { padding-top: 8px; }
-  .proc-text h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .proc-text p { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.65; }
-
-  /* ── CTA / FORM ── */
-  #cta { padding: 100px 0; }
-  .cta-glow {
-    position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
-    width: 700px; height: 400px;
-    background: radial-gradient(ellipse at center, rgba(45,126,248,0.12), transparent 70%);
-    pointer-events: none;
-  }
-  .cta-inner { max-width: 640px; margin: 0 auto; text-align: center; }
-  .form-card {
-    background: var(--card); border: 1px solid var(--card-border);
-    border-radius: var(--radius); padding: 36px; text-align: left; margin-top: 40px;
-  }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 7px; }
-  .form-group input, .form-group select {
-    width: 100%; padding: 12px 16px;
-    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
-    border-radius: var(--radius-sm); color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .form-group input::placeholder { color: var(--text-dim); }
-  .form-group input:focus, .form-group select:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(45,126,248,0.12);
-  }
-  .form-group select { -webkit-appearance: none; cursor: pointer; }
-  .form-submit {
-    width: 100%; padding: 16px; background: var(--blue); color: #fff;
-    border: none; border-radius: var(--radius-sm);
-    font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; margin-top: 8px;
-    box-shadow: 0 4px 20px var(--blue-glow);
-  }
-  .form-submit:hover { background: var(--blue-bright); box-shadow: 0 4px 30px rgba(74,158,255,0.4); transform: translateY(-2px); }
-  .form-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-  .form-privacy { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 16px; }
-  .form-success { display: none; text-align: center; padding: 40px 20px; }
-  .success-icon {
-    width: 64px; height: 64px; background: rgba(34,211,130,0.1);
-    border: 1px solid rgba(34,211,130,0.3); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; margin: 0 auto 16px;
-  }
-  .form-success h3 { font-size: 22px; color: #fff; margin-bottom: 10px; }
-  .form-success p { font-size: 15px; color: var(--text-muted); }
-
-  /* ── FOOTER ── */
-  footer { padding: 32px 0; border-top: 1px solid var(--card-border); }
-  .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-  .footer-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  footer p { font-size: 13px; color: var(--text-dim); }
-
-  /* ── RESPONSIVE ── */
-  @media(max-width:900px) {
-    .hero-grid, .problem-grid, .roi-grid { grid-template-columns: 1fr; gap: 40px; }
-    .steps-grid { grid-template-columns: 1fr 1fr; }
-    .step-card:first-child { border-radius: var(--radius) 0 0 0; }
-    .step-card:nth-child(2) { border-radius: 0 var(--radius) 0 0; }
-    .step-card:nth-child(3) { border-radius: 0 0 0 var(--radius); }
-    .step-card:last-child { border-radius: 0 0 var(--radius) 0; }
-    .step-arrow { display: none; }
-    .features-grid { grid-template-columns: 1fr 1fr; }
-    .nav-links { display: none; }
-    .hamburger { display: flex; }
-    .phone-wrap { order: -1; }
-  }
-  @media(max-width:560px) {
-    .steps-grid, .features-grid { grid-template-columns: 1fr; }
-    .step-card, .step-card:first-child, .step-card:last-child, .step-card:nth-child(2), .step-card:nth-child(3) { border-radius: var(--radius); }
-    .form-row { grid-template-columns: 1fr; }
-    .stats-row { gap: 28px; }
-    .hero-btns { flex-direction: column; }
-    .form-card { padding: 24px 18px; }
-  }
+/* RESPONSIVE */
+@media(max-width:900px) {
+  .hero-grid, .problem-grid, .roi-grid, .followup-grid { grid-template-columns: 1fr; gap: 40px; }
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+  .step-card:first-child { border-radius: var(--r) 0 0 0; }
+  .step-card:nth-child(2) { border-radius: 0 var(--r) 0 0; }
+  .step-card:nth-child(3) { border-radius: 0 0 0 var(--r); }
+  .step-card:last-child { border-radius: 0 0 var(--r) 0; }
+  .step-arrow { display: none; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .nav-links { display: none; }
+  .ham { display: flex; }
+  .phone-wrap { order: -1; }
+}
+@media(max-width:560px) {
+  .steps-grid, .features-grid { grid-template-columns: 1fr; }
+  .step-card, .step-card:first-child, .step-card:last-child, .step-card:nth-child(2), .step-card:nth-child(3) { border-radius: var(--r); }
+  .form-row { grid-template-columns: 1fr; }
+  .stats-row { gap: 28px; }
+  .hero-btns { flex-direction: column; }
+  .form-card { padding: 24px 18px; }
+}
 </style>
 </head>
 <body>
 
-<!-- STICKY CTA -->
 <div class="sticky-cta" id="stickyCta">
   <a href="#cta" class="btn btn-primary" style="box-shadow:0 8px 30px rgba(45,126,248,0.4);">Request Setup →</a>
 </div>
 
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-close" onclick="closeMobile()">✕</button>
-  <a href="#problem" onclick="closeMobile()">Problem</a>
-  <a href="#how" onclick="closeMobile()">How It Works</a>
-  <a href="#roi" onclick="closeMobile()">ROI</a>
-  <a href="#cta" onclick="closeMobile()">Get Started</a>
-  <a href="#cta" class="btn btn-primary btn-large" onclick="closeMobile()">Request Setup</a>
+<div class="mob-menu" id="mobMenu">
+  <button class="mob-close" onclick="closeMob()">✕</button>
+  <a href="#problem" onclick="closeMob()">Problem</a>
+  <a href="#how" onclick="closeMob()">How It Works</a>
+  <a href="#roi" onclick="closeMob()">ROI</a>
+  <a href="#pricing" onclick="closeMob()">Pricing</a>
+  <a href="#cta" class="btn btn-primary btn-large" onclick="closeMob()">Request Setup</a>
 </div>
 
-<!-- NAV -->
 <nav id="navbar">
   <div class="nav-inner">
-    <div class="nav-logo"><div class="dot"></div>Missed Call Rescue</div>
+    <div class="nav-logo"><div class="logo-dot"></div>Missed Call Rescue</div>
     <ul class="nav-links">
       <li><a href="#problem">Problem</a></li>
       <li><a href="#how">How It Works</a></li>
       <li><a href="#roi">ROI</a></li>
-      <li><a href="#cta">Get Started</a></li>
+      <li><a href="#pricing">Pricing</a></li>
     </ul>
     <a href="#cta" class="btn btn-primary" style="font-size:14px;">Request Setup</a>
-    <div class="hamburger" onclick="openMobile()"><span></span><span></span><span></span></div>
+    <div class="ham" onclick="openMob()"><span></span><span></span><span></span></div>
   </div>
 </nav>
 
@@ -503,21 +372,18 @@
   <div class="container">
     <div class="hero-grid">
       <div>
-        <div class="hero-badge">
-          <div class="live-dot"></div>
-          For Local Service Businesses
-        </div>
-        <h1>Stop Losing Customers Every Time You <span>Miss a Call</span></h1>
-        <p class="hero-sub">When someone calls and gets no answer, they move on in minutes. Missed Call Rescue instantly texts them back, captures the lead, and notifies you — so you never lose a job to a missed call again.</p>
+        <div class="hero-badge"><div class="live-dot"></div>For Local Service Businesses</div>
+        <h1>Stop Losing Customers Every Time You <span style="color:var(--blue2)">Miss a Call</span></h1>
+        <p class="hero-sub">Automatically text missed callers back, follow up with them, and turn lost calls into paying customers — without lifting a finger.</p>
         <div class="hero-btns">
           <a href="#cta" class="btn btn-primary btn-large">Request Setup</a>
           <a href="#how" class="btn btn-ghost btn-large">See How It Works</a>
         </div>
         <div class="hero-bullets">
           <div class="hero-bullet"><div class="check">✓</div>Instant missed-call text back</div>
-          <div class="hero-bullet"><div class="check">✓</div>Lead captured automatically</div>
-          <div class="hero-bullet"><div class="check">✓</div>You get notified instantly</div>
-          <div class="hero-bullet"><div class="check">✓</div>Done-for-you setup. No contracts.</div>
+          <div class="hero-bullet"><div class="check">✓</div>Automatic follow-up if no reply</div>
+          <div class="hero-bullet"><div class="check">✓</div>Lead captured and sent to you</div>
+          <div class="hero-bullet"><div class="check">✓</div>No complicated setup. Done for you.</div>
         </div>
       </div>
       <div class="phone-wrap">
@@ -531,7 +397,7 @@
           </div>
           <div class="messages">
             <div class="msg msg-missed">📵 Missed call · 2:47 PM</div>
-            <div class="msg msg-out">Hey! Sorry we missed your call. What service were you looking for? 🚗</div>
+            <div class="msg msg-out">Hey! Sorry we missed your call. What kind of service were you looking for? 🚗</div>
             <div class="msg msg-in">Hi, I need a full detail on my truck. How much?</div>
             <div class="msg msg-out">Full detail on a truck runs $250–$300. Want to book this week? Thursday and Friday are open.</div>
             <div class="msg msg-in">Friday works — what time?</div>
@@ -563,9 +429,9 @@
   <div class="container" style="padding-top:100px;padding-bottom:100px;">
     <div class="fade-in">
       <span class="section-tag">The Problem</span>
-      <h2 class="section-title">Missed Calls Are <span style="color:var(--blue-bright)">Missed Revenue</span></h2>
+      <h2 class="section-title">Missed Calls Are <span>Missed Revenue</span></h2>
     </div>
-    <div class="problem-grid" style="margin-top:48px;">
+    <div class="problem-grid">
       <div class="problem-copy fade-in">
         <p>You're out working, driving, or with a client. Someone calls ready to book. You miss it.</p>
         <p><strong>They don't leave a voicemail.</strong> They don't wait. They open Google and call the next business on the list.</p>
@@ -575,27 +441,15 @@
           <div class="icon">⚡</div>
           <div>
             <h4>Speed is everything with leads</h4>
-            <p>The odds of reaching a lead drop by over 80% after just 5 minutes. Most customers have already moved on by the time you call back.</p>
+            <p>The odds of reaching a lead drop over 80% after just 5 minutes. Most customers have already moved on by the time you call back.</p>
           </div>
         </div>
       </div>
       <div class="problem-cards fade-in">
-        <div class="prob-card">
-          <div class="prob-icon">📵</div>
-          <div><h4>They don't leave voicemails</h4><p>78% of callers hang up without leaving a message. If you miss it, you may never know they called.</p></div>
-        </div>
-        <div class="prob-card">
-          <div class="prob-icon">⏱️</div>
-          <div><h4>Customers decide in minutes</h4><p>Most people searching for a local service book the first business that responds. Slow = lost job.</p></div>
-        </div>
-        <div class="prob-card">
-          <div class="prob-icon">📋</div>
-          <div><h4>No system to catch it</h4><p>Voicemail doesn't capture intent. Calling back hours later rarely works. You need something faster.</p></div>
-        </div>
-        <div class="prob-card">
-          <div class="prob-icon">💸</div>
-          <div><h4>Silent revenue leak</h4><p>Because it's invisible, most owners underestimate how much money they're losing every single week.</p></div>
-        </div>
+        <div class="prob-card"><div class="prob-icon">📵</div><div><h4>They don't leave voicemails</h4><p>78% of callers hang up without leaving a message. If you miss it, you may never know they called.</p></div></div>
+        <div class="prob-card"><div class="prob-icon">⏱️</div><div><h4>Customers decide in minutes</h4><p>Most people searching for a local service book the first business that responds. Slow = lost job.</p></div></div>
+        <div class="prob-card"><div class="prob-icon">📋</div><div><h4>No system to catch it</h4><p>Voicemail doesn't capture intent. Calling back hours later rarely works. You need something faster.</p></div></div>
+        <div class="prob-card"><div class="prob-icon">💸</div><div><h4>Silent revenue leak</h4><p>Because it's invisible, most owners underestimate how much money they're losing every week.</p></div></div>
       </div>
     </div>
   </div>
@@ -607,37 +461,67 @@
 <section id="how">
   <div class="container" style="padding-top:100px;padding-bottom:100px;">
     <div class="text-center fade-in">
-      <span class="section-tag">The Solution</span>
+      <span class="section-tag">Simple Process</span>
       <h2 class="section-title">How It Works</h2>
       <p class="section-body">Four steps. Fully automatic. You just close the jobs.</p>
     </div>
     <div class="steps-grid fade-in">
-      <div class="step-card">
-        <div class="step-arrow">→</div>
-        <span class="step-num">1</span>
-        <span class="step-icon">📞</span>
-        <h3>Customer calls your business</h3>
-        <p>Someone ready to book calls your number. High intent, warm lead — right now.</p>
+      <div class="step-card"><div class="step-arrow">→</div><span class="step-num">1</span><span class="step-icon">📞</span><h3>Customer calls your business</h3><p>Someone ready to book calls your number. High intent, right now.</p></div>
+      <div class="step-card"><div class="step-arrow">→</div><span class="step-num">2</span><span class="step-icon">📵</span><h3>You miss the call</h3><p>You're working, driving, or unavailable. It happens constantly.</p></div>
+      <div class="step-card"><div class="step-arrow">→</div><span class="step-num">3</span><span class="step-icon">💬</span><h3>They get an instant text back</h3><p>Within seconds, a personalized message goes out from your business. They stay engaged.</p></div>
+      <div class="step-card"><span class="step-num">4</span><span class="step-icon">🔔</span><h3>System follows up + you get the lead</h3><p>If no reply, a follow-up fires automatically. You get notified so you can close it.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOLLOW UP SECTION -->
+<section id="followup">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+    <div class="fade-in">
+      <span class="section-tag">The Difference</span>
+      <h2 class="section-title">We Don't Just Reply — <span>We Follow Up</span></h2>
+      <p class="section-body" style="margin-bottom:0;">Most businesses either don't respond or send one message and give up. This system keeps going until the lead responds.</p>
+    </div>
+    <div class="followup-grid">
+      <div class="followup-steps fade-in">
+        <div class="fu-step"><div class="fu-num">1</div><div class="fu-text"><h4>Instant text back — within seconds</h4><p>The moment a call is missed, the caller gets a friendly text from your business before they even hang up.</p></div></div>
+        <div class="fu-step"><div class="fu-num">2</div><div class="fu-text"><h4>Follow-up if no reply</h4><p>If they don't respond within a couple hours, the system automatically sends a follow-up so the lead doesn't go cold.</p></div></div>
+        <div class="fu-step"><div class="fu-num">3</div><div class="fu-text"><h4>You get notified instantly</h4><p>The moment a lead replies you get an alert with their info so you can jump in and close the job personally.</p></div></div>
+        <div class="fu-step"><div class="fu-num">4</div><div class="fu-text"><h4>Lead tracked in your dashboard</h4><p>Every missed call, every reply, every booking — tracked in one place so nothing falls through the cracks.</p></div></div>
       </div>
-      <div class="step-card">
-        <div class="step-arrow">→</div>
-        <span class="step-num">2</span>
-        <span class="step-icon">📵</span>
-        <h3>You miss the call</h3>
-        <p>You're working, driving, or unavailable. It happens constantly.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-arrow">→</div>
-        <span class="step-num">3</span>
-        <span class="step-icon">💬</span>
-        <h3>They get an instant text back</h3>
-        <p>Within seconds, they receive a personalized message from your business. They stay engaged.</p>
-      </div>
-      <div class="step-card">
-        <span class="step-num">4</span>
-        <span class="step-icon">🔔</span>
-        <h3>You get the lead</h3>
-        <p>You're notified instantly with their info so you can follow up and close the job.</p>
+      <div class="followup-visual fade-in">
+        <h3>What the customer sees</h3>
+        <div class="msg-timeline">
+          <div class="msg-tl">
+            <div class="msg-tl-icon blue">📵</div>
+            <div class="msg-tl-content">
+              <div class="msg-tl-time">2:47 PM — Missed call</div>
+              <div class="msg-tl-text"><strong>Instant text:</strong> "Hey! Sorry we missed your call. What service were you looking for?"</div>
+            </div>
+            <span class="msg-tl-badge badge-auto">AUTO</span>
+          </div>
+          <div class="msg-tl">
+            <div class="msg-tl-icon yellow">🔁</div>
+            <div class="msg-tl-content">
+              <div class="msg-tl-time">4:47 PM — No reply yet</div>
+              <div class="msg-tl-text"><strong>Follow-up:</strong> "Just checking in — still looking to book? We have openings this week!"</div>
+            </div>
+            <span class="msg-tl-badge badge-auto2">FOLLOW-UP</span>
+          </div>
+          <div class="msg-tl">
+            <div class="msg-tl-icon green">💬</div>
+            <div class="msg-tl-content">
+              <div class="msg-tl-time">5:12 PM — Lead replies</div>
+              <div class="msg-tl-text"><strong>Customer:</strong> "Yes! I need a full detail Saturday. What times do you have?"</div>
+            </div>
+            <span class="msg-tl-badge badge-reply">BOOKED</span>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding:16px;background:var(--blue-dim);border:1px solid var(--blue-border);border-radius:var(--r-sm);font-size:13px;color:var(--muted);">
+          💡 That job would have been lost. The follow-up brought it back.
+        </div>
       </div>
     </div>
   </div>
@@ -650,15 +534,15 @@
   <div class="container" style="padding-top:100px;padding-bottom:100px;">
     <div class="text-center fade-in">
       <span class="section-tag">What's Included</span>
-      <h2 class="section-title">Everything You Need to Recover Lost Jobs</h2>
+      <h2 class="section-title">Everything You Need to Stop Losing Jobs</h2>
       <p class="section-body">One system. Runs in the background. Done for you.</p>
     </div>
     <div class="features-grid">
-      <div class="feature-card fade-in"><div class="feature-icon">⚡</div><h3>Instant Text Back</h3><p>The second you miss a call, the lead gets a text from your business. Before they have time to call someone else.</p></div>
-      <div class="feature-card fade-in"><div class="feature-icon">🎯</div><h3>Lead Captured Automatically</h3><p>Their response and contact info is saved automatically — without you lifting a finger.</p></div>
-      <div class="feature-card fade-in"><div class="feature-icon">🔔</div><h3>Instant Notifications</h3><p>You get an alert the moment a lead replies so you can jump in and close the job fast.</p></div>
-      <div class="feature-card fade-in"><div class="feature-icon">✏️</div><h3>Custom Messages</h3><p>Messages are written for your specific business and tone — not generic auto-replies that feel robotic.</p></div>
-      <div class="feature-card fade-in"><div class="feature-icon">🔁</div><h3>Follow-Up Texts</h3><p>If they don't reply, optional follow-ups go out automatically so no lead goes cold.</p></div>
+      <div class="feature-card fade-in"><div class="feature-icon">⚡</div><h3>Instant Text Back</h3><p>The second you miss a call, the lead gets a text. Before they have time to call someone else.</p></div>
+      <div class="feature-card fade-in"><div class="feature-icon">🔁</div><h3>Automatic Follow-Up</h3><p>If they don't reply, the system follows up automatically so no lead goes cold.</p></div>
+      <div class="feature-card fade-in"><div class="feature-icon">🎯</div><h3>Lead Captured</h3><p>Their info and conversation is saved automatically. Nothing slips through.</p></div>
+      <div class="feature-card fade-in"><div class="feature-icon">🔔</div><h3>Instant Notifications</h3><p>You get an alert the moment a lead replies so you can jump in and close it.</p></div>
+      <div class="feature-card fade-in"><div class="feature-icon">✏️</div><h3>Custom Messages</h3><p>Messages are written for your specific business, service, and tone. Not generic auto-replies.</p></div>
       <div class="feature-card fade-in"><div class="feature-icon">🛠️</div><h3>Done-For-You Setup</h3><p>We build and configure everything for you. Zero tech skills required on your end.</p></div>
     </div>
   </div>
@@ -672,7 +556,7 @@
     <div class="roi-grid">
       <div class="roi-copy fade-in">
         <span class="section-tag">The Math</span>
-        <h2 class="section-title">What Are Missed Calls <span style="color:var(--blue-bright)">Actually Costing You?</span></h2>
+        <h2 class="section-title">What Are Missed Calls <span>Actually Costing You?</span></h2>
         <p>Most business owners don't track missed calls. But if you're missing even <strong>5–10 calls per week</strong>, the numbers add up fast.</p>
         <p>Even recovering a fraction of those calls can mean <strong>hundreds — sometimes thousands — of dollars per month</strong> you're currently leaving on the table.</p>
         <p>The system pays for itself the first time it saves a job you would have lost.</p>
@@ -700,7 +584,43 @@
           <div class="roi-big" id="rweek">$480</div>
           <div class="roi-sub">estimated recovered revenue per week</div>
         </div>
-        <a href="#cta" class="btn btn-primary btn-full" style="margin-top:16px;padding:14px;">Recover These Leads →</a>
+        <a href="#cta" class="btn btn-primary btn-full" style="margin-top:16px;padding:14px;">Request Setup →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+    <div class="text-center fade-in">
+      <span class="section-tag">Pricing</span>
+      <h2 class="section-title">Simple Monthly Pricing</h2>
+      <p class="section-body">One flat rate. Everything included. No surprises.</p>
+    </div>
+    <div class="pricing-card fade-in">
+      <div class="pricing-header">
+        <div class="price-num">$97</div>
+        <div class="price-per">per month</div>
+      </div>
+      <div class="pricing-body">
+        <div class="pricing-features">
+          <div class="pf"><div class="ck">✓</div>Instant missed-call text back</div>
+          <div class="pf"><div class="ck">✓</div>Automatic follow-up texts</div>
+          <div class="pf"><div class="ck">✓</div>Lead capture and notifications</div>
+          <div class="pf"><div class="ck">✓</div>Custom messages written for your business</div>
+          <div class="pf"><div class="ck">✓</div>Done-for-you setup — we handle everything</div>
+          <div class="pf"><div class="ck">✓</div>Ongoing support</div>
+        </div>
+        <a href="#cta" class="btn btn-primary btn-full btn-large">Request Setup →</a>
+        <p class="pricing-note">We'll send you a payment link after setup is confirmed.</p>
+        <div class="pricing-tags">
+          <span class="ptag">No contracts</span>
+          <span class="ptag">Cancel anytime</span>
+          <span class="ptag">Setup handled for you</span>
+        </div>
       </div>
     </div>
   </div>
@@ -717,26 +637,11 @@
       <p class="section-body">This isn't software you install yourself. We handle everything.</p>
     </div>
     <div class="process-inner fade-in">
-      <div class="proc-step">
-        <div class="proc-num">1</div>
-        <div class="proc-text"><h4>We learn how your business works</h4><p>A quick conversation about your services, pricing, and how you prefer to communicate with customers.</p></div>
-      </div>
-      <div class="proc-step">
-        <div class="proc-num">2</div>
-        <div class="proc-text"><h4>We write your custom messages</h4><p>We craft response messages that sound like you — not a robot. Tailored to your service and tone.</p></div>
-      </div>
-      <div class="proc-step">
-        <div class="proc-num">3</div>
-        <div class="proc-text"><h4>We connect your notifications</h4><p>You get set up to receive instant alerts the moment a lead responds so you can close it fast.</p></div>
-      </div>
-      <div class="proc-step">
-        <div class="proc-num">4</div>
-        <div class="proc-text"><h4>We test everything with you</h4><p>We run a full test before going live to make sure every part of the system works exactly right.</p></div>
-      </div>
-      <div class="proc-step">
-        <div class="proc-num">5</div>
-        <div class="proc-text"><h4>Your system goes live</h4><p>From this point on, every missed call triggers the system automatically. You just close the jobs.</p></div>
-      </div>
+      <div class="proc-step"><div class="proc-num">1</div><div class="proc-text"><h4>We learn how your business works</h4><p>A quick conversation about your services, pricing, and how you prefer to communicate with customers.</p></div></div>
+      <div class="proc-step"><div class="proc-num">2</div><div class="proc-text"><h4>We write your custom messages</h4><p>We craft response messages that sound like you — not a robot. Tailored to your service and tone.</p></div></div>
+      <div class="proc-step"><div class="proc-num">3</div><div class="proc-text"><h4>We connect your notifications</h4><p>You get set up to receive instant alerts the moment a lead responds so you can close it fast.</p></div></div>
+      <div class="proc-step"><div class="proc-num">4</div><div class="proc-text"><h4>We test everything with you</h4><p>We run a full test before going live to make sure every part of the system works exactly right.</p></div></div>
+      <div class="proc-step"><div class="proc-num">5</div><div class="proc-text"><h4>Your system goes live</h4><p>From this point on, every missed call triggers the system automatically. You just close the jobs.</p></div></div>
     </div>
   </div>
 </section>
@@ -750,7 +655,7 @@
     <div class="cta-inner">
       <span class="section-tag">Get Started</span>
       <h2 class="section-title fade-in">Request Setup</h2>
-      <p class="section-body fade-in">Fill this out and we'll reach out to learn about your business, customize your system, and get everything live.</p>
+      <p class="section-body fade-in">Fill this out and we'll reach out to learn about your business, customize your messages, and get everything live.</p>
     </div>
     <div class="form-card fade-in" style="max-width:640px;margin:40px auto 0;">
       <div id="formContent">
@@ -784,95 +689,77 @@
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <div class="container">
     <div class="footer-inner">
-      <div class="footer-logo"><div class="dot"></div>Missed Call Rescue</div>
+      <div class="footer-logo"><div class="logo-dot"></div>Missed Call Rescue</div>
       <p>© 2025 Missed Call Rescue. Helping local businesses recover lost revenue.</p>
     </div>
   </div>
 </footer>
 
 <script>
-  // Nav + sticky
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    document.getElementById('stickyCta').classList.toggle('visible', window.scrollY > 600);
-  });
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 40);
+  document.getElementById('stickyCta').classList.toggle('visible', window.scrollY > 600);
+});
+function openMob() { document.getElementById('mobMenu').classList.add('open'); }
+function closeMob() { document.getElementById('mobMenu').classList.remove('open'); }
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+document.querySelectorAll('.feature-card').forEach((c,i) => { c.style.transitionDelay = (i*0.07)+'s'; });
+document.querySelectorAll('.prob-card').forEach((c,i) => { c.style.transitionDelay = (i*0.07)+'s'; });
 
-  // Mobile menu
-  function openMobile() { document.getElementById('mobileMenu').classList.add('open'); }
-  function closeMobile() { document.getElementById('mobileMenu').classList.remove('open'); }
+function calc() {
+  const calls = +document.getElementById('cs').value;
+  const job   = +document.getElementById('js').value;
+  const rate  = +document.getElementById('rs').value;
+  document.getElementById('cv').textContent = calls;
+  document.getElementById('jv').textContent = '$'+job;
+  document.getElementById('rv').textContent = rate+'%';
+  const wk = calls*(rate/100)*job;
+  document.getElementById('rjobs').textContent = (calls*rate/100).toFixed(1);
+  document.getElementById('rweek').textContent = '$'+Math.round(wk).toLocaleString();
+  document.getElementById('rmonth').textContent = '$'+Math.round(wk*4).toLocaleString();
+  document.getElementById('ryear').textContent = '$'+Math.round(wk*52).toLocaleString();
+}
+calc();
 
-  // Scroll reveal
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-  }, { threshold: 0.08 });
-  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
-
-  // Stagger cards
-  document.querySelectorAll('.feature-card').forEach((c, i) => { c.style.transitionDelay = (i * 0.07) + 's'; });
-  document.querySelectorAll('.prob-card').forEach((c, i) => { c.style.transitionDelay = (i * 0.07) + 's'; });
-
-  // ROI calc
-  function calc() {
-    const calls = +document.getElementById('cs').value;
-    const job   = +document.getElementById('js').value;
-    const rate  = +document.getElementById('rs').value;
-    document.getElementById('cv').textContent = calls;
-    document.getElementById('jv').textContent = '$' + job;
-    document.getElementById('rv').textContent = rate + '%';
-    const wk = calls * (rate / 100) * job;
-    document.getElementById('rjobs').textContent = (calls * rate / 100).toFixed(1);
-    document.getElementById('rweek').textContent = '$' + Math.round(wk).toLocaleString();
-    document.getElementById('rmonth').textContent = '$' + Math.round(wk * 4).toLocaleString();
-    document.getElementById('ryear').textContent = '$' + Math.round(wk * 52).toLocaleString();
+async function submitForm() {
+  const name = document.getElementById('fname').value.trim();
+  const biz = document.getElementById('fbiz').value.trim();
+  const phone = document.getElementById('fphone').value.trim();
+  const email = document.getElementById('femail').value.trim();
+  const callsPerWeek = document.getElementById('fcalls').value;
+  if (!name || !biz || !phone || !email) { showErr('Please fill out all fields.'); return; }
+  if (!callsPerWeek) { showErr('Please select your average calls per week.'); return; }
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  clearErr();
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, businessName: biz, phone, email, callsPerWeek }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong.');
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('formSuccess').style.display = 'block';
+  } catch (err) {
+    btn.textContent = 'Request Setup →'; btn.disabled = false;
+    showErr(err.message || 'Something went wrong. Please try again.');
   }
-  calc();
-
-  // Form submit
-  async function submitForm() {
-    const name         = document.getElementById('fname').value.trim();
-    const biz          = document.getElementById('fbiz').value.trim();
-    const phone        = document.getElementById('fphone').value.trim();
-    const email        = document.getElementById('femail').value.trim();
-    const callsPerWeek = document.getElementById('fcalls').value;
-
-    if (!name || !biz || !phone || !email) { showErr('Please fill out all fields.'); return; }
-    if (!callsPerWeek) { showErr('Please select your average calls per week.'); return; }
-
-    const btn = document.querySelector('.form-submit');
-    btn.textContent = 'Sending…'; btn.disabled = true;
-    clearErr();
-
-    try {
-      const res = await fetch('/api/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, businessName: biz, phone, email, callsPerWeek }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong.');
-      document.getElementById('formContent').style.display = 'none';
-      document.getElementById('formSuccess').style.display = 'block';
-    } catch (err) {
-      btn.textContent = 'Request Setup →'; btn.disabled = false;
-      showErr(err.message || 'Something went wrong. Please try again.');
-    }
-  }
-
-  function showErr(msg) {
-    let el = document.getElementById('formErr');
-    if (!el) {
-      el = document.createElement('p'); el.id = 'formErr';
-      el.style.cssText = 'color:#ff5a5a;font-size:13px;margin-top:12px;text-align:center;';
-      document.querySelector('.form-submit').insertAdjacentElement('afterend', el);
-    }
-    el.textContent = '⚠ ' + msg;
-  }
-  function clearErr() { const el = document.getElementById('formErr'); if (el) el.remove(); }
+}
+function showErr(msg) {
+  let el = document.getElementById('formErr');
+  if (!el) { el = document.createElement('p'); el.id = 'formErr'; el.style.cssText = 'color:#ff5a5a;font-size:13px;margin-top:12px;text-align:center;'; document.querySelector('.form-submit').insertAdjacentElement('afterend', el); }
+  el.textContent = '⚠ '+msg;
+}
+function clearErr() { const el = document.getElementById('formErr'); if (el) el.remove(); }
 </script>
 </body>
 </html>
