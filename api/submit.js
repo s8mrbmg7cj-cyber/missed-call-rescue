@@ -55,14 +55,16 @@ export default async function handler(req, res) {
       await fetch(`https://ntfy.sh/${ntfyTopic}`, {
         method: "POST",
         headers: {
-          "Title": `🚨 New Lead: ${name}`,
+          "Title": `New Lead: ${name}`,
           "Priority": "high",
-          "Tags": "bell,money_with_wings",
+          "Tags": "bell",
           "Content-Type": "text/plain"
         },
         body: `Business: ${businessName}\nPhone: ${phone}\nEmail: ${email}\nCalls/week: ${callsPerWeek}`
       });
       console.log("NTFY: push notification sent");
+    } else {
+      console.log("NTFY: topic not set — skipping");
     }
   } catch (err) {
     console.log("NTFY ERROR:", err.message);
