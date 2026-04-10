@@ -28,12 +28,8 @@ export default async function handler(req, res) {
 
   console.log("=== NEW FORM SUBMISSION ===");
   console.log("Name:", name, "| Business:", businessName);
-  console.log("Phone:", phone, "| Email:", email);
-  console.log("Calls/week:", callsPerWeek);
 
-  console.log("ENV CHECK - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "MISSING");
-  console.log("ENV CHECK - SUPABASE_SECRET_KEY:", process.env.SUPABASE_SECRET_KEY ? "SET" : "MISSING");
-
+  // Save to Supabase
   try {
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -52,6 +48,27 @@ export default async function handler(req, res) {
     console.log("SUPABASE ERROR:", err.message);
   }
 
+  // Send push notification via Ntfy
+  try {
+    const ntfyTopic = process.env.NTFY_TOPIC;
+    if (ntfyTopic) {
+      await fetch(`https://ntfy.sh/${ntfyTopic}`, {
+        method: "POST",
+        headers: {
+          "Title": `🚨 New Lead: ${name}`,
+          "Priority": "high",
+          "Tags": "bell,money_with_wings",
+          "Content-Type": "text/plain"
+        },
+        body: `Business: ${businessName}\nPhone: ${phone}\nEmail: ${email}\nCalls/week: ${callsPerWeek}`
+      });
+      console.log("NTFY: push notification sent");
+    }
+  } catch (err) {
+    console.log("NTFY ERROR:", err.message);
+  }
+
+  // Send email
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
