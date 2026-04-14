@@ -1,13 +1,7 @@
 {
-  "name": "missed-call-rescue",
-  "version": "1.0.0",
-  "private": true,
-  "engines": {
-    "node": "20.x"
-  },
   "type": "module",
   "dependencies": {
-    "resend": "^3.2.0",
-    "@supabase/supabase-js": "^2.45.0"
+    "resend": "^3.0.0",
+    "@supabase/supabase-js": "^2.0.0"
   }
 }
