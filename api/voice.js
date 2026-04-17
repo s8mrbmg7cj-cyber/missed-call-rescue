@@ -1,0 +1,14 @@
+export default function handler(req, res) {
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather numDigits="1" action="https://missed-call-rescue-nu.vercel.app/api/menu" method="POST">
+    <Say voice="alice">
+      Thanks for calling. Press 1 for rentals. Press 2 for payments. Press 3 for customer service. Press 4 for move out. Press 5 for a representative.
+    </Say>
+  </Gather>
+  <Say voice="alice">We did not receive a selection. Goodbye.</Say>
+</Response>`;
+
+  res.setHeader("Content-Type", "text/xml");
+  res.status(200).send(twiml);
+}
