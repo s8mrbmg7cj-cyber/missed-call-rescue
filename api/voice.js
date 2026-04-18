@@ -3,7 +3,8 @@ export default function handler(req, res) {
 <Response>
   <Gather numDigits="1" action="https://missed-call-rescue-nu.vercel.app/api/menu" method="POST">
     <Say voice="Polly.Joanna">
-      Thanks for calling.
+      Hello, and thank you for calling.
+      We can help with storage rentals, payments, move out requests, and customer service.
       Press 1 for rentals.
       Press 2 for payments.
       Press 3 for customer service.
