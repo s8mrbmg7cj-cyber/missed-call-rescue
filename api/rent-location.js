@@ -1,12 +1,17 @@
 export default function handler(req, res) {
+  const digit = req.body?.Digits || req.query?.Digits;
+
+  let message = "We will text you the rental link shortly.";
+
+  if (digit === "1") {
+    message = "Thanks. We will text you the Bonham rental link shortly.";
+  } else if (digit === "2") {
+    message = "Thanks. We will text you the Highway 136 rental link shortly.";
+  }
+
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Gather numDigits="1" action="https://missed-call-rescue-nu.vercel.app/api/rent-send" method="POST">
-    <Say voice="alice">
-      For Bonham, press 1. For Highway 136, press 2.
-    </Say>
-  </Gather>
-  <Say voice="alice">We did not receive a selection. Goodbye.</Say>
+  <Say voice="Polly.Joanna">${message}</Say>
 </Response>`;
 
   res.setHeader("Content-Type", "text/xml");
